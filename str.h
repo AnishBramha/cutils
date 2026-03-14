@@ -3,11 +3,12 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include "header.h"
+#include "alias.h"
 
 #ifdef STD_STRING
 
-char* _str_replace(char* s, char* old, char* _new);
-char* str_slice(char* s, int start, int end);
+char* str_slice(const char* s, int start, int end);
 
 #define NIL '\0'
 
@@ -69,15 +70,16 @@ char* str_slice(char* s, int start, int end);
  \
         Header* header = (Header*)(s) - 1; \
  \
-        if (header->count + strlen(t) >= header->capacity) { \
+        if (header->count + strlen(t) + 1 >= header->capacity) { \
  \
             header->capacity += strlen(t) + header->capacity * 1.5; \
             header = (Header*)realloc(header, (sizeof(*(s)) * header->capacity) + sizeof(Header)); \
             (s) = (char*)(header + 1); \
         } \
  \
-        strncat((s), (t), strlen(t)); \
+        memcpy((s) + header->count, (t), strlen(t)); \
         header->count += strlen(t); \
+        (s)[header->count] = NIL; \
  \
     } while(0)
 
@@ -92,7 +94,7 @@ char* str_slice(char* s, int start, int end);
     } while(0)
 
 
-#define str_for_each(s, ptr) for (char* ptr = (str); ptr < (str) + str_len(str); ptr++)
+#define str_for_each(s, ptr) for (char* ptr = (s); ptr < (s) + str_len(s); ptr++)
 
 
 #endif // STD_STRING
@@ -116,7 +118,7 @@ static inline char* _str_replace(const char* s, const char* t, const char* r) {
     if (!t || !strlen(t) || !r || !strlen(r))
         return str_slice(s, 0, str_len(s) - 1);
 
-    size_t occurrences = 0;
+    usize occurrences = 0;
     const char* u = s;
     while ((u = strstr(u, t))) {
 
@@ -127,10 +129,10 @@ static inline char* _str_replace(const char* s, const char* t, const char* r) {
     if (!occurrences)
         return str_slice(s, 0, str_len(s) - 1);
         
-    size_t s1 = strlen(s);
-    size_t t1 = strlen(t);
-    size_t r1 = strlen(r);
-    size_t v1 = (size_t)(int)((int)s1 + (int)occurrences * ((int)r1 - (int)t1));
+    usize s1 = strlen(s);
+    usize t1 = strlen(t);
+    usize r1 = strlen(r);
+    usize v1 = (usize)(int)((int)s1 + (int)occurrences * ((int)r1 - (int)t1));
 
     Header* header = (Header*)malloc(sizeof(Header) + v1 + 1);
     header->count = v1;
@@ -143,7 +145,7 @@ static inline char* _str_replace(const char* s, const char* t, const char* r) {
     
     while ((next = strstr(u, t))) {
 
-        size_t chunk_len = next - u;
+        usize chunk_len = next - u;
         memcpy(st, u, chunk_len);
         st += chunk_len;
         
@@ -189,7 +191,7 @@ inline char* str_slice(const char* s, int start, int end) {
         end = str_len(s) - 1;
     }
 
-    size_t len = end - start + 1;
+    usize len = end - start + 1;
     Header* header = (Header*)malloc(sizeof(Header) + len + 1);
     header->count = len;
     header->capacity = len * 1.5;

@@ -4,6 +4,7 @@
 
 #pragma once
 
+
 #ifdef STD_TABLE
 
 #include <stddef.h>
@@ -11,14 +12,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include "header.h"
-
-typedef uint32_t u32;
-typedef ptrdiff_t idx_t;
+#include "alias.h"
 
 
 u32 _table_hash(const char* name);
 void* _table_grow(void* m, size_t elem_size);
-idx_t _table_find(void* m, size_t cap, size_t elem_size, const char* k);
+isize _table_find(void* m, size_t cap, size_t elem_size, const char* k);
 
 
 #define table_header(m) ((Header*)(m) - 1)
